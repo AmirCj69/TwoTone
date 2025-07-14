@@ -22,10 +22,7 @@ async def run_mood_check():
         await asyncio.sleep(43200)  # 12 hours
         await send_mood_check(app)
 
-async def main():
-    asyncio.create_task(run_mood_check())
-    await app.run_polling()
-
+# ✨ Railway fix: avoid `asyncio.run()` issues
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+    app.create_task(run_mood_check())
+    app.run_polling()
