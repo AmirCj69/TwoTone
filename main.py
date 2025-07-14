@@ -1,0 +1,30 @@
+# main.py
+
+import asyncio
+import logging
+import os
+from dotenv import load_dotenv
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
+from bot.handlers import start, handle_message, stats, send_mood_check
+
+load_dotenv()
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+
+logging.basicConfig(level=logging.INFO)
+
+app = ApplicationBuilder().token(BOT_TOKEN).build()
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("stats", stats))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+async def run_mood_check():
+    while True:
+        await asyncio.sleep(43200)  # 12 hours
+        await send_mood_check(app)
+
+async def main():
+    asyncio.create_task(run_mood_check())
+    await app.run_polling()
+
+if __name__ == "__main__":
+    asyncio.run(main())
