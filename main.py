@@ -17,15 +17,17 @@ app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("stats", stats))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-async def run_mood_check():
+# ⛑ Schedule mood check *inside* application
+async def post_init(application):
+    application.create_task(run_mood_check(application))
+
+# ⏱ Mood check loop
+async def run_mood_check(application):
     while True:
         await asyncio.sleep(43200)  # 12 hours
-        await send_mood_check(app)
+        await send_mood_check(application)
 
-async def main():
-    asyncio.create_task(run_mood_check())
-    await app.run_polling()
-
-# ✅ Railway-safe: use asyncio.run only here
+# ✅ Run app and attach post-init hook
 if __name__ == "__main__":
-    asyncio.run(main())
+    app.post_init = post_init
+    app.run_polling()
