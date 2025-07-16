@@ -5,28 +5,19 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from bot.handlers import start, handle_message, stats, send_mood_check
 from dotenv import load_dotenv
 
-load_dotenv()  # Load from .env if running locally
+load_dotenv()
+TOKEN = os.getenv("BOT_TOKEN")
 
-TOKEN = os.environ.get("BOT_TOKEN")
-
-if not TOKEN:
-    raise ValueError("BOT_TOKEN environment variable not set")
+async def post_init(application):
+    application.create_task(run_mood_check(application))  # Run mood check after start
 
 async def run_mood_check(application):
     while True:
-        await asyncio.sleep(3600)  # Every hour
+        await asyncio.sleep(3600)  # 1 hour
         await send_mood_check(application)
 
-async def post_init(application):
-    application.create_task(run_mood_check(application))
-
 async def main():
-    app = (
-        Application.builder()
-        .token(TOKEN)
-        .post_init(post_init)
-        .build()
-    )
+    app = Application.builder().token(TOKEN).post_init(post_init).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("stats", stats))
@@ -35,5 +26,14 @@ async def main():
     await app.bot.delete_webhook(drop_pending_updates=True)
     await app.run_polling()
 
-if __name__ == "__main__":
+# ---- Run main safely even if loop is already running ----
+try:
     asyncio.run(main())
+except RuntimeError as e:
+    if "event loop is already running" in str(e):
+        # For environments like Jupyter, Replit etc.
+        import nest_asyncio
+        nest_asyncio.apply()
+        asyncio.get_event_loop().run_until_complete(main())
+    else:
+        raise
