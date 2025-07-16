@@ -65,11 +65,14 @@ async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("\n".join(lines))
 
 async def send_mood_check(application):
-    from telegram import ReplyKeyboardMarkup
+    keyboard = [["All Good 😊", "Meh 😐", "Not Great 😶"]]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     for user_id in USER_MAP:
-        keyboard = [["All Good 😊", "Meh 😐", "Not Great 😶"]]
-        reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
         try:
-            await application.bot.send_message(chat_id=user_id, text="💭 Just checking in… how's your mood right now?", reply_markup=reply_markup)
+            await application.bot.send_message(
+                chat_id=user_id,
+                text="💭 Just checking in… how's your mood right now?",
+                reply_markup=reply_markup
+            )
         except:
             continue

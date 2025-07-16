@@ -3,7 +3,6 @@
 import os
 import json
 from datetime import datetime
-from bot.config import MOOD_OPTIONS
 
 MOOD_FILE = "mood_data.json"
 
@@ -12,12 +11,10 @@ def load_mood_data():
         with open(MOOD_FILE, "w") as f:
             json.dump({}, f)
         return {}
-
     with open(MOOD_FILE, "r") as f:
         try:
             return json.load(f)
         except json.JSONDecodeError:
-            # Handle empty or corrupt file gracefully
             return {}
 
 def save_mood_data(data):

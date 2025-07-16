@@ -1,28 +1,39 @@
 # main.py
 import asyncio
+import os
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from bot.handlers import start, handle_message, stats, send_mood_check
+from dotenv import load_dotenv
 
-TOKEN = "your-token-here"
+load_dotenv()  # Load from .env if running locally
 
-async def post_init(application):
-    application.create_task(run_mood_check(application))  # 👈 Run it after app is live
+TOKEN = os.environ.get("BOT_TOKEN")
 
-async def main():
-    application = Application.builder().token(TOKEN).post_init(post_init).build()
-
-    # Handlers
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("stats", stats))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-
-    # Remove webhook and drop pending updates
-    await application.bot.delete_webhook(drop_pending_updates=True)
-
-    # ✅ Run bot
-    await application.run_polling()
+if not TOKEN:
+    raise ValueError("BOT_TOKEN environment variable not set")
 
 async def run_mood_check(application):
     while True:
-        await asyncio.sleep(3600)  # or whatever your interval is
+        await asyncio.sleep(3600)  # Every hour
         await send_mood_check(application)
+
+async def post_init(application):
+    application.create_task(run_mood_check(application))
+
+async def main():
+    app = (
+        Application.builder()
+        .token(TOKEN)
+        .post_init(post_init)
+        .build()
+    )
+
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("stats", stats))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    await app.bot.delete_webhook(drop_pending_updates=True)
+    await app.run_polling()
+
+if __name__ == "__main__":
+    asyncio.run(main())

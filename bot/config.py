@@ -11,5 +11,5 @@ MOOD_OPTIONS = {
     "I Miss You 💌": "misses you more than words right now.",
     "I Need Space 🌑": "needs a little breathing room. Respect that.",
     "I Need Attention 🐾": "wants your eyes, your hands, and your presence. Right now.",
-    "I’m A Moody Bitch Right Now 🌪️": "is being a little dramatic. Love ‘em anyway."
+    "I’m A Moody Bitch Right Now 🌪️": "is being a little dramatic. Love ‘em anyway.",
 }
