@@ -9,10 +9,14 @@ MOOD_FILE = "mood_data.json"
 
 def load_mood_data():
     if not os.path.exists(MOOD_FILE):
-        with open(MOOD_FILE, "w") as f:
-            json.dump({}, f)
-    with open(MOOD_FILE, "r") as f:
-        return json.load(f)
+        return {}
+
+    with open(MOOD_FILE, "r", encoding="utf-8") as f:
+        try:
+            return json.load(f)
+        except json.JSONDecodeError:
+            # Empty or corrupted file fallback
+            return {}
 
 def save_mood_data(data):
     with open(MOOD_FILE, "w") as f:
