@@ -30,5 +30,4 @@ async def run_mood_check(application):
         await asyncio.sleep(3600)
         await send_mood_check(application)
 
-if __name__ == "__main__":
-    asyncio.run(main())
+asyncio.get_event_loop().run_until_complete(main())
