@@ -12,26 +12,23 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 logging.basicConfig(level=logging.INFO)
 
-async def run_mood_check(app):
+async def run_mood_check(application):
     while True:
         await asyncio.sleep(43200)  # 12 hours
-        await send_mood_check(app)
+        await send_mood_check(application)
 
-async def main():
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
+async def post_init(application):
+    # This runs AFTER bot is initialized and polling has started
+    application.create_task(run_mood_check(application))
 
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("stats", stats))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+def main():
+    application = ApplicationBuilder().token(BOT_TOKEN).post_init(post_init).build()
 
-    # Start the bot first
-    await app.initialize()
-    await app.start()
-    app.create_task(run_mood_check(app))  # This is now safe to start
-    await app.updater.start_polling()
-    await app.updater.wait_for_stop()
-    await app.stop()
-    await app.shutdown()
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("stats", stats))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    application.run_polling()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
