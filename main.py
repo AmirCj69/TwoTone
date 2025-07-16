@@ -18,7 +18,7 @@ async def run_mood_check(application):
         await send_mood_check(application)
 
 async def post_init(application):
-    # This runs AFTER bot is initialized and polling has started
+    # This ensures the task runs AFTER bot has started
     application.create_task(run_mood_check(application))
 
 def main():
