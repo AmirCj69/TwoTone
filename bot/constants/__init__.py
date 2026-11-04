@@ -1,0 +1,1 @@
+"""Catalog and constants package."""

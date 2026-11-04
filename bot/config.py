@@ -1,30 +1,51 @@
-# bot/config.py
+"""Configuration and partner identity management."""
+import os
+from dataclasses import dataclass
+from typing import Optional, Tuple
+from dotenv import load_dotenv
 
-USER_MAP = {
-    499080623: {"name": "Amir", "partner_id": 634034210},
-    634034210: {"name": "Ghazal", "partner_id": 499080623},
-}
+# Load from .env if present
+load_dotenv()
 
-MOOD_OPTIONS = {
-    "I'm Mad 😠": "💢 is mad right now.",
-    "I'm Not Mad Anymore ✅": "✅ is not mad anymore. Vibes are back.",
-    "I Miss You 💗": "💗 misses you.",
-    "I Need Space 🗳️": "🗳️ needs a little space right now.",
-    "I Need Attention 🧸": "🧸 needs some love and attention ASAP.",
-    "I'm A Moody Bitch Right Now 🌪️": "🌪️ is in Moody Bitch Mode. Approach with snacks or memes.",
-    "I Love You ❤️": "❤️ loves you deeply.",
-    "I'm Sad 😔": "😔 is feeling down. Be gentle.",
-    "There's Something Wrong With Me But I Can't Say It 🫥": "🫥 is struggling silently. Just be there.",
-    "Let’s Reset 🔄": "🔄 wants to reset the mood. Let’s start fresh.",
-    "Please Reassure Me 🥺": "🥺 needs reassurance. Let them know they’re loved.",
-    "I’m Anxious 😣": "😣 is feeling anxious. Speak softly, hold gently.",
-    "I Feel Distant 🌫️": "🌫️ feels a little distant. Bridge the gap if you can.",
-    "I Don’t Know What I Need 🤷‍♀️": "🤷‍♀️ doesn’t know what she needs. Just stay close.",
-    "I Feel Unseen 🪞": "🪞 feels unseen. Let her know she matters.",
-    "I’m Overthinking Everything 🔁": "🔁 is trapped in a loop of overthinking. Help her escape.",
-    "Please Just Hug Me 🫂": "🫂 needs a warm hug. No words, just closeness.",
-    "I’m Jealous 😤": "😤 is feeling a little jealous. Reassurance would go a long way.",
-    "I’m Tired But I Care 💤": "💤 is exhausted but still deeply cares.",
-    "I Feel Guilty 😞": "😞 feels guilty. Let her know it’s okay to be imperfect.",
-    "I'm Proud of You 🫶": "🫶 is proud of you and wants you to know it.",
-}
+
+@dataclass(frozen=True)
+class Config:
+    """Application configuration and partner mapping."""
+    bot_token: str = os.getenv("BOT_TOKEN", "").strip()
+    user_a_id: int = int(os.getenv("USER_A_ID", "0"))
+    user_a_name: str = os.getenv("USER_A_NAME", "Partner A").strip()
+    user_b_id: int = int(os.getenv("USER_B_ID", "0"))
+    user_b_name: str = os.getenv("USER_B_NAME", "Partner B").strip()
+    database_path: str = os.getenv("DATABASE_PATH", "twotone.db").strip()
+
+    def is_authorized(self, user_id: int) -> bool:
+        """Check if user_id belongs to either partner."""
+        if not user_id:
+            return False
+        return user_id in (self.user_a_id, self.user_b_id)
+
+    def get_sender_name(self, user_id: int) -> str:
+        """Get the configured name for the given user."""
+        if user_id == self.user_a_id:
+            return self.user_a_name
+        elif user_id == self.user_b_id:
+            return self.user_b_name
+        return "Someone"
+
+    def get_partner_info(self, user_id: int) -> Tuple[int, str, str]:
+        """
+        Get partner details.
+        Returns:
+            (partner_id, sender_name, partner_name)
+        Raises:
+            PermissionError if the user is not authorized.
+        """
+        if user_id == self.user_a_id:
+            return self.user_b_id, self.user_a_name, self.user_b_name
+        elif user_id == self.user_b_id:
+            return self.user_a_id, self.user_b_name, self.user_a_name
+        raise PermissionError(f"User {user_id} is not an authorized partner.")
+
+
+# Global singleton instance
+config = Config()
